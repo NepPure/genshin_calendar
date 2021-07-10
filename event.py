@@ -6,7 +6,7 @@ import aiohttp
 import asyncio
 import math
 
-# type 0普通 1双倍 2 公会战 3 活动
+# type 0 普通常驻任务深渊 1 新闻 2 蛋池 3 限时活动H5
 
 event_data = {
     'cn': [],
@@ -20,6 +20,21 @@ lock = {
     'cn': asyncio.Lock(),
 }
 
+ignored_key_words = [
+    "游戏更新修复与优化说明",
+    "版本内容专题页",
+    "版本更新说明",
+    "米游社"
+]
+
+ignored_ann_ids = [
+    495,  # 有奖问卷调查开启！
+    1263,  # 米游社《原神》专属工具一览
+    423,  # 《原神》玩家社区一览
+    422,  # 《原神》防沉迷系统说明
+    762,  # 《原神》公平运营声明
+]
+
 
 async def query_data(url):
     try:
@@ -32,24 +47,47 @@ async def query_data(url):
 
 
 async def load_event_cn():
-    data = await query_data('https://genshin-calendar.neptunia.vip/event.json')
-    if data and 'cn' in data:
+    result = await query_data('https://hk4e-api-static.mihoyo.com/common/hk4e_cn/announcement/api/getAnnList?game=hk4e&game_biz=hk4e_cn&lang=zh-cn&bundle_id=hk4e_cn&platform=pc&region=cn_gf01&level=55&uid=100000000')
+    if result and 'retcode' in result and result['retcode'] == 0:
         event_data['cn'] = []
-        for item in data['cn']:
-            start_time = datetime.strptime(
-                item['start'], r"%Y/%m/%d %H:%M")
-            end_time = datetime.strptime(
-                item['end'], r"%Y/%m/%d %H:%M")
-            event = {'title': item['title'],
-                     'start': start_time,
-                     'end': end_time,
-                     'forever': item['forever'],
-                     'type': 1}
-            if 'H5' in event['title'] or '倍' in event['title']:
-                event['type'] = 2
-            elif item['category'] == 'clanbattle':
-                event['type'] = 3
-            event_data['cn'].append(event)
+        datalist = result['data']['list']
+        for data in datalist:
+            for item in data['list']:
+                # 1 活动公告 2 游戏公告
+                if item['type'] == 2:
+                    ignore = False
+                    for ann_id in ignored_ann_ids:
+                        if ann_id == item["ann_id"]:
+                            ignore = True
+                            break
+                    if ignore:
+                        continue
+
+                    for keyword in ignored_key_words:
+                        if keyword in item['title']:
+                            ignore = True
+                            break
+                    if ignore:
+                        continue
+
+                start_time = datetime.strptime(
+                    item['start_time'], r"%Y-%m-%d %H:%M:%S")
+                end_time = datetime.strptime(
+                    item['end_time'], r"%Y-%m-%d %H:%M:%S")
+                event = {'title': item['title'],
+                         'start': start_time,
+                         'end': end_time,
+                         'forever': False,
+                         'type': 0}
+                if '任务' in item['title']:
+                    event['forever'] = True
+                if item['type'] == 1:
+                    event['type'] = 1
+                if '扭蛋' in item['tag_label']:
+                    event['type'] = 2
+                if '倍' in item['title']:
+                    event['type'] = 3
+                event_data['cn'].append(event)
         # 深渊提醒
         i = 0
         while i < 2:

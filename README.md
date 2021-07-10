@@ -8,14 +8,7 @@
 
 ## 日程信息源
 
-原神没找到合适的可以扒的数据源，我们先整个静态文件将就一下
-
-数据大概就从这里来，https://bbs.mihoyo.com/ys/home/28?type=1
-
-做个爬虫也不是不行，但是总觉得不会很准确，先能用(╯‵□′)╯︵┻━┻
-
-https://genshin-calendar.neptunia.vip/event.json
-
+游戏内公告
 
 ## 安装方法
 
