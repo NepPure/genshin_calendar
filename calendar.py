@@ -132,6 +132,7 @@ async def start_scheduled(bot, ev):
                 msg = f'已切换为标准image模式'
             save_data()
         else:
+            return
             msg = '指令错误'
         update_group_schedule(group_id)
         save_data()
