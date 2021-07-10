@@ -15,7 +15,7 @@ HELP_STR = '''
 原神日历 status : 查看本群日历推送设置
 '''.strip()
 
-sv = hoshino.Service('genshin_calendar', help_=HELP_STR, bundle='原神日历')
+sv = hoshino.Service('原神日历', help_=HELP_STR, bundle='原神日历')
 
 group_data = {}
 
