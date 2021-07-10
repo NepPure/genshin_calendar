@@ -100,6 +100,7 @@ async def start_scheduled(bot, ev):
                 'cardimage': False,
             }
         if not hoshino.priv.check_priv(ev, hoshino.priv.ADMIN):
+            return
             msg = '权限不足'
         elif 'on' in cmd:
             if server not in group_data[group_id]['server_list']:
