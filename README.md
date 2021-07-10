@@ -4,9 +4,7 @@
 
 项目地址 <https://github.com/NepPure/genshin_calendar>
 
-这还是公主连接的图👇，以后再换
-
-![calendar](https://user-images.githubusercontent.com/3376669/104091785-b476a080-52ba-11eb-9d0a-763cb29cc9b6.png)
+![calendar](preview.gif)
 
 ## 日程信息源
 
