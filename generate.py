@@ -15,7 +15,7 @@ def im2base64str(im):
 
 
 async def generate_day_schedule(server='cn'):
-    events = await get_events(server, 0, 31)
+    events = await get_events(server, 0, 15)
 
     has_prediction = False
     for event in events:

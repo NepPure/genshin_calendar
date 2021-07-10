@@ -1,6 +1,7 @@
 import os
 import json
-import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import aiohttp
 import asyncio
 import math
@@ -35,9 +36,9 @@ async def load_event_cn():
     if data and 'cn' in data:
         event_data['cn'] = []
         for item in data['cn']:
-            start_time = datetime.datetime.strptime(
+            start_time = datetime.strptime(
                 item['start'], r"%Y/%m/%d %H:%M")
-            end_time = datetime.datetime.strptime(
+            end_time = datetime.strptime(
                 item['end'], r"%Y/%m/%d %H:%M")
             event = {'title': item['title'],
                      'start': start_time,
@@ -49,6 +50,31 @@ async def load_event_cn():
             elif item['category'] == 'clanbattle':
                 event['type'] = 3
             event_data['cn'].append(event)
+        # 深渊提醒
+        i = 0
+        while i < 2:
+            curmon = datetime.today() + relativedelta(months=i)
+            nextmon = curmon + relativedelta(months=1)
+            event_data['cn'].append({
+                'title': '「深镜螺旋」',
+                'start': datetime.strptime(
+                    curmon.strftime("%Y/%m/01 04:00"), r"%Y/%m/%d %H:%M"),
+                'end': datetime.strptime(
+                    curmon.strftime("%Y/%m/16 03:59"), r"%Y/%m/%d %H:%M"),
+                'forever': False,
+                'type': 3
+            })
+            event_data['cn'].append({
+                'title': '「深镜螺旋」',
+                'start': datetime.strptime(
+                    curmon.strftime("%Y/%m/16 04:00"), r"%Y/%m/%d %H:%M"),
+                'end': datetime.strptime(
+                    nextmon.strftime("%Y/%m/01 03:59"), r"%Y/%m/%d %H:%M"),
+                'forever': False,
+                'type': 3
+            })
+            i = i+1
+
         return 0
     return 1
 
@@ -60,20 +86,20 @@ async def load_event(server):
 
 
 def get_pcr_now(offset):
-    pcr_now = datetime.datetime.now()
+    pcr_now = datetime.now()
     if pcr_now.hour < 4:
-        pcr_now -= datetime.timedelta(days=1)
+        pcr_now -= timedelta(days=1)
     pcr_now = pcr_now.replace(
         hour=18, minute=0, second=0, microsecond=0)  # 用晚6点做基准
-    pcr_now = pcr_now + datetime.timedelta(days=offset)
+    pcr_now = pcr_now + timedelta(days=offset)
     return pcr_now
 
 
 async def get_events(server, offset, days):
     events = []
-    pcr_now = datetime.datetime.now()
+    pcr_now = datetime.now()
     if pcr_now.hour < 4:
-        pcr_now -= datetime.timedelta(days=1)
+        pcr_now -= timedelta(days=1)
     pcr_now = pcr_now.replace(
         hour=18, minute=0, second=0, microsecond=0)  # 用晚6点做基准
 
@@ -86,16 +112,16 @@ async def get_events(server, offset, days):
     finally:
         lock[server].release()
 
-    start = pcr_now + datetime.timedelta(days=offset)
-    end = start + datetime.timedelta(days=days)
-    end -= datetime.timedelta(hours=18)  # 晚上12点结束
+    start = pcr_now + timedelta(days=offset)
+    end = start + timedelta(days=days)
+    end -= timedelta(hours=18)  # 晚上12点结束
 
     for event in event_data[server]:
         if end > event['start'] and start < event['end']:  # 在指定时间段内 已开始 且 未结束
             event['start_days'] = math.ceil(
-                (event['start'] - start) / datetime.timedelta(days=1))  # 还有几天开始
+                (event['start'] - start) / timedelta(days=1))  # 还有几天开始
             event['left_days'] = math.floor(
-                (event['end'] - start) / datetime.timedelta(days=1))  # 还有几天结束
+                (event['end'] - start) / timedelta(days=1))  # 还有几天结束
             events.append(event)
     # 按type从大到小 按剩余天数从小到大
     events.sort(key=lambda item: item["type"]
