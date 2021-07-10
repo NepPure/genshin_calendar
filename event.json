@@ -5,14 +5,14 @@
             "start": "2021/06/09 11:00",
             "end": "2021/06/28 03:59",
             "forever": false,
-            "category": "news"
+            "category": "clanbattle"
         },
         {
             "title": "「回声轻叙」活动：参与得芭芭拉衣装「闪耀协奏」",
             "start": "2021/06/09 11:00",
             "end": "2021/07/21 03:59",
             "forever": false,
-            "category": "news"
+            "category": "clanbattle"
         },
         {
             "title": "「海风之梦」琴衣装限时折扣",
@@ -61,14 +61,14 @@
             "start": "2021/07/02 10:00",
             "end": "2021/07/12 03:59",
             "forever": false,
-            "category": "news"
+            "category": "clanbattle"
         },
         {
             "title": "「无尽骤战」活动：海岛营地挑战",
             "start": "2021/07/09 10:00",
             "end": "2021/07/19 03:59",
             "forever": false,
-            "category": "news"
+            "category": "clanbattle"
         },
         {
             "title": "「旅行绘本」H5活动：完成绘制获得摆设图纸「花海的摇篮」",
@@ -76,6 +76,13 @@
             "end": "2021/07/12 03:59",
             "forever": false,
             "category": "news"
+        },
+        {
+            "title": "2.0版本更新",
+            "start": "2021/7/21 07:00",
+            "end": "2021/7/21 11:00",
+            "forever": false,
+            "category": "maintenance"
         }
     ]
 }
