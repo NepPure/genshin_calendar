@@ -87,7 +87,7 @@ async def start_scheduled(bot, ev):
     if not cmd:
         im = await generate_day_schedule(server)
         base64_str = im2base64str(im)
-        if 'cardimage' not in group_data[group_id] or not group_data[group_id]['cardimage']:
+        if group_id not in group_data or 'cardimage' not in group_data[group_id] or not group_data[group_id]['cardimage']:
             msg = f'[CQ:image,file={base64_str}]'
         else:
             msg = f'[CQ:cardimage,file={base64_str}]'
