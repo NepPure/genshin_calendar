@@ -26,7 +26,7 @@ async def generate_day_schedule(server='cn'):
     else:
         im = create_image(len(events) + 1)
 
-    title = f'原神活动'
+    title = f'原神日历'
     pcr_now = get_pcr_now(0)
     draw_title(im, 0, title, pcr_now.strftime('%Y/%m/%d'), '正在进行')
 
