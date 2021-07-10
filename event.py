@@ -42,7 +42,7 @@ async def load_event_cn():
             event = {'title': item['title'],
                      'start': start_time,
                      'end': end_time,
-                     'foever': item['foever'],
+                     'forever': item['forever'],
                      'type': 1}
             if 'H5' in event['title'] or '倍' in event['title']:
                 event['type'] = 2
