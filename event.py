@@ -23,7 +23,8 @@ lock = {
 ignored_key_words = [
     "修复",
     "版本内容专题页",
-    "米游社"
+    "米游社",
+    "调研"
 ]
 
 ignored_ann_ids = [
