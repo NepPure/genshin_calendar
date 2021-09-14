@@ -24,7 +24,8 @@ ignored_key_words = [
     "修复",
     "版本内容专题页",
     "米游社",
-    "调研"
+    "调研",
+    "防沉迷"
 ]
 
 ignored_ann_ids = [
@@ -94,7 +95,7 @@ async def load_event_cn():
             curmon = datetime.today() + relativedelta(months=i)
             nextmon = curmon + relativedelta(months=1)
             event_data['cn'].append({
-                'title': '「深镜螺旋」',
+                'title': '「深境螺旋」',
                 'start': datetime.strptime(
                     curmon.strftime("%Y/%m/01 04:00"), r"%Y/%m/%d %H:%M"),
                 'end': datetime.strptime(
@@ -103,7 +104,7 @@ async def load_event_cn():
                 'type': 3
             })
             event_data['cn'].append({
-                'title': '「深镜螺旋」',
+                'title': '「深境螺旋」',
                 'start': datetime.strptime(
                     curmon.strftime("%Y/%m/16 04:00"), r"%Y/%m/%d %H:%M"),
                 'end': datetime.strptime(
