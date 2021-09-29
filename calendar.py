@@ -72,7 +72,7 @@ def update_group_schedule(group_id):
         send_calendar,
         'cron',
         args=(group_id,),
-        id=f'calendar_{group_id}',
+        id=f'genshin_calendar_{group_id}',
         replace_existing=True,
         hour=group_data[group_id]['hour'],
         minute=group_data[group_id]['minute']
