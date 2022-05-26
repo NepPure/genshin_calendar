@@ -128,7 +128,7 @@ async def load_event_cn():
                         if datelist and len(datelist) >= 6:
                             ctime = datetime.strptime(
                                 f'{datelist[0]}-{datelist[1]}-{datelist[2]} {datelist[3]}:{datelist[4]}:{datelist[5]}', r"%Y-%m-%d %H:%M:%S")
-                            if ctime > start_time and ctime < end_time:
+                            if start_time < ctime < end_time:
                                 start_time = ctime
                     except Exception as e:
                         pass
