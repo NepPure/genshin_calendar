@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Union
 
 from nonebot import logger, require, get_bot, on_command
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent, Bot, Message, MessageSegment
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent, Bot, Message, MessageSegment, ActionFailed
 from nonebot.params import CommandArg
 
 from .calendar_config import config
@@ -35,7 +35,7 @@ def save_data(data, data_file):
 
 
 async def send_calendar(group_id, group_data):
-    for server in group_data[str(group_id)]['server_list']:
+    for server in group_data['server_list']:
         im = await generate_day_schedule(server)
         base64_str = im2base64str(im)
         if 'cardimage' not in group_data or not group_data['cardimage']:
@@ -58,7 +58,8 @@ def update_group_schedule(group_id, group_data):
         id=f'genshin_calendar_{group_id}',
         replace_existing=True,
         hour=group_data[group_id]['hour'],
-        minute=group_data[group_id]['minute']
+        minute=group_data[group_id]['minute'],
+        misfire_grace_time=10
     )
 
 
@@ -81,11 +82,14 @@ async def _(bot: Bot, event: Union[GroupMessageEvent, MessageEvent], msg: Messag
         base64_str = im2base64str(im)
         group_data = load_data('data.json')
 
-        if group_id not in group_data or 'cardimage' not in group_data[group_id] or not group_data[group_id][
-            'cardimage']:
-            await calendar.finish(MessageSegment.image(base64_str))
-        else:
-            await calendar.finish(f'[CQ:cardimage,file={base64_str}]')
+        try:
+            if group_id not in group_data or 'cardimage' not in group_data[group_id] or not group_data[group_id]['cardimage']:
+                await calendar.finish(MessageSegment.image(base64_str))
+            else:
+                await calendar.finish(f'[CQ:cardimage,file={base64_str}]')
+        except ActionFailed as e:
+            await calendar.finish(e)
+
     elif action:
 
         # 添加定时推送任务
@@ -111,7 +115,8 @@ async def _(bot: Bot, event: Union[GroupMessageEvent, MessageEvent], msg: Messag
                 hour=8,
                 minute=0,
                 id="genshin_calendar_" + group_id,
-                args=(group_id, group_data[group_id])
+                args=(group_id, group_data[group_id]),
+                misfire_grace_time=10
             )
 
             await calendar.finish('原神日程推送已开启')
@@ -162,5 +167,6 @@ for group_id, group_data in load_data('data.json').items():
         hour=group_data['hour'],
         minute=group_data['minute'],
         id="genshin_calendar_" + group_id,
-        args=(group_id, group_data)
+        args=(group_id, group_data),
+        misfire_grace_time=10
     )
