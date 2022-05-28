@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from .aiorequest import get
 import aiohttp
 import asyncio
 import math
@@ -76,9 +77,8 @@ def cache(ttl=timedelta(hours=1), arg_key=None):
 @cache(ttl=timedelta(hours=3), arg_key='url')
 async def query_data(url):
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                return await resp.json()
+        req = await get(url)
+        return req.json()
     except:
         pass
     return None
