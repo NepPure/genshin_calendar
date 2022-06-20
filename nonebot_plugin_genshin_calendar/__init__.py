@@ -1,7 +1,8 @@
+import logging
 from pathlib import Path
 from typing import Union
 
-from nonebot import logger, require, get_bot, on_command
+from nonebot import require, get_bot, on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent, Bot, Message, MessageSegment, ActionFailed
 from nonebot.params import CommandArg
 
@@ -17,19 +18,19 @@ HELP_STR = '''
 原神日历 status : 查看本群日历推送设置
 '''.strip()
 
-calendar = on_command('原神日历', aliases={"原神日历", 'ysrl', '原神日程'}, priority=24, block=True)
+calendar = on_command('原神日历', aliases={"原神日历", '原神日程', 'ysrl', 'ysrc'}, priority=24, block=True)
 scheduler = require('nonebot_plugin_apscheduler').scheduler
 
 
 def load_data(data_file):
-    data_path = Path() / 'data' / 'calendar' / data_file
+    data_path = Path() / 'data' / 'genshin_calendar' / data_file
     if not data_path.exists():
         save_data({}, data_file)
     return json.load(data_path.open('r', encoding='utf-8'))
 
 
 def save_data(data, data_file):
-    data_path = Path() / 'data' / 'calendar' / data_file
+    data_path = Path() / 'data' / 'genshin_calendar' / data_file
     data_path.parent.mkdir(parents=True, exist_ok=True)
     json.dump(data, data_path.open('w', encoding='utf-8'), ensure_ascii=False, indent=2)
 
@@ -37,11 +38,11 @@ def save_data(data, data_file):
 async def send_calendar(group_id, group_data):
     for server in group_data['server_list']:
         im = await generate_day_schedule(server)
-        base64_str = im2base64str(im)
+        #base64_str = im2base64str(im)
         if 'cardimage' not in group_data or not group_data['cardimage']:
-            msg = MessageSegment.image(base64_str)
+            msg = MessageSegment.image(im)
         else:
-            msg = f'[CQ:cardimage,file={base64_str}]'
+            msg = f'[CQ:cardimage,file={im}]'
 
         await get_bot().send_group_msg(group_id=int(group_id), message=msg)
 
@@ -64,7 +65,7 @@ def update_group_schedule(group_id, group_data):
 
 
 @calendar.handle()
-async def _(bot: Bot, event: Union[GroupMessageEvent, MessageEvent], msg: Message = CommandArg()):
+async def _(event: Union[GroupMessageEvent, MessageEvent], msg: Message = CommandArg()):
     if event.message_type == 'private':
         await calendar.finish('仅支持群聊模式下使用本指令')
 
@@ -72,23 +73,21 @@ async def _(bot: Bot, event: Union[GroupMessageEvent, MessageEvent], msg: Messag
     group_data = load_data('data.json')
     server = 'cn'
     fun = str(msg).strip()
-    action = re.search(r'(?P<action>on|off|time|status|test)', fun)
+    action = re.search(r'(?P<action>on|off|time|status|cardimage)', fun)
 
     if group_id not in config.enable_group:
         await calendar.finish(f"尚未在群 {group_id} 开启本功能！", at_sender=True)
 
     if not fun:
         im = await generate_day_schedule(server)
-        base64_str = im2base64str(im)
-        group_data = load_data('data.json')
 
         try:
             if group_id not in group_data or 'cardimage' not in group_data[group_id] or not group_data[group_id]['cardimage']:
-                await calendar.finish(MessageSegment.image(base64_str))
+                await calendar.finish(MessageSegment.image(im))
             else:
-                await calendar.finish(f'[CQ:cardimage,file={base64_str}]')
+                await calendar.finish(f'[CQ:cardimage,file={im}]')
         except ActionFailed as e:
-            await calendar.finish(e)
+            logging.error(e)
 
     elif action:
 
@@ -119,23 +118,23 @@ async def _(bot: Bot, event: Union[GroupMessageEvent, MessageEvent], msg: Messag
                 misfire_grace_time=10
             )
 
-            await calendar.finish('原神日程推送已开启')
+            await calendar.finish('原神日历推送已开启', at_sender=True)
 
         # 关闭推送功能
         elif action.group('action') == 'off':
             del group_data[group_id]
             if scheduler.get_job("genshin_calendar_" + group_id):
                 scheduler.remove_job("genshin_calendar_" + group_id)
-            await calendar.finish('原神日程推送已关闭')
+            await calendar.finish('原神日程推送已关闭', at_sender=True)
 
         # 设置推送时间
         elif action.group('action') == 'time':
             match = str(msg).split(" ")
             time = re.search(r'(\d{1,2}):(\d{2})', match[1])
 
-            if re.match(r'(\d{1,2}):(\d{2})', match[1]):
+            if time:
                 if not time or len(time.groups()) < 2:
-                    await calendar.finish("请指定推送时间")
+                    await calendar.finish("请指定推送时间", at_sender=True)
                 else:
                     group_data[group_id]['hour'] = int(time.group(1))
                     group_data[group_id]['minute'] = int(time.group(2))
@@ -143,21 +142,29 @@ async def _(bot: Bot, event: Union[GroupMessageEvent, MessageEvent], msg: Messag
                     update_group_schedule(group_id, group_data)
 
                     await calendar.finish(
-                        f"推送时间已设置为: {group_data[group_id]['hour']}:{group_data[group_id]['minute']:02d}")
+                        f"推送时间已设置为: {group_data[group_id]['hour']}:{group_data[group_id]['minute']:02d}", at_sender=True)
 
             else:
                 await calendar.finish("请给出正确的时间，格式为12:00", at_sender=True)
-        # DEBUG
-        elif action.group('action') == 'test':
-            return
 
         # 查询订阅推送状态
         elif action.group('action') == "status":
-            message = f"订阅日历: {group_data[group_id]['server_list']}"
-            message += f"\n推送时间: {group_data[group_id]['hour']}:{group_data[group_id]['minute']:02d}"
+            message = "订阅日历: {0}\n" \
+                      "推送时间: {1}:{2}".format(group_data[group_id]['server_list'], group_data[group_id]['hour'], group_data[group_id]['minute'])
             await calendar.finish(message)
+
+        # 切换cardImage模式
+        elif action.group('action') == "cardimage":
+            if 'cardimage' not in group_data[group_id] or not group_data[group_id]['cardimage']:
+                group_data[group_id]['cardimage'] = True
+                save_data(group_data, 'data.json')
+                await calendar.finish('已切换为cardimage模式', at_sender=True)
+            else:
+                group_data[group_id]['cardimage'] = False
+                save_data(group_data, 'data.json')
+                await calendar.finish('已切换为标准image模式', at_sender=True)
         else:
-            await calendar.finish('指令错误')
+            await calendar.finish('指令错误', at_sender=True)
 
 # 自动推送任务
 for group_id, group_data in load_data('data.json').items():

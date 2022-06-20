@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: nonebot-plugin-genshin-calendar
+Version: 0.0.3
+Summary: 查看原神活动日历
+Home-page: https://github.com/nicklly/nonebot_plugin_genshin_calendar
+Author: TonyKun
+Author-email: 1134741727@qq.com
+License: GPL Licence
+Keywords: pip,nonebot_plugin_genshin_calendar
+Platform: any
+License-File: LICENSE
+
+查看原神活动日历

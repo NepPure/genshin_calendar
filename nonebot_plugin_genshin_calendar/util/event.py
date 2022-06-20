@@ -1,16 +1,16 @@
 import os
-import json
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from .aiorequest import get
-import aiohttp
 import asyncio
 import math
 import functools
 import re
 
-# type 0 普通常驻任务深渊 1 新闻 2 蛋池 3 限时活动H5
 
+res = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'template')
+
+# type 0 普通常驻任务深渊 1 新闻 2 蛋池 3 限时活动H5
 event_data = {
     'cn': [],
 }
@@ -25,10 +25,15 @@ lock = {
 
 ignored_key_words = [
     "修复",
-    "版本内容专题页",
+    "内容专题页",
     "米游社",
     "调研",
-    "防沉迷"
+    "防沉迷",
+    "问卷",
+    "公平运营",
+    "纪行",
+    "有奖活动",
+    "反馈功能"
 ]
 
 ignored_ann_ids = [
@@ -113,10 +118,8 @@ async def load_event_cn():
                     if ignore:
                         continue
 
-                start_time = datetime.strptime(
-                    item['start_time'], r"%Y-%m-%d %H:%M:%S")
-                end_time = datetime.strptime(
-                    item['end_time'], r"%Y-%m-%d %H:%M:%S")
+                start_time = datetime.strptime(item['start_time'], r"%Y-%m-%d %H:%M:%S")
+                end_time = datetime.strptime(item['end_time'], r"%Y-%m-%d %H:%M:%S")
 
                 # 从正文中查找开始时间
                 if event_detail[item["ann_id"]]:
@@ -133,19 +136,29 @@ async def load_event_cn():
                     except Exception as e:
                         pass
 
-                event = {'title': item['title'],
-                         'start': start_time,
-                         'end': end_time,
-                         'forever': False,
-                         'type': 0}
+                event = {
+                    'title': item['title'],
+                    'start': start_time,
+                    'end': end_time,
+                    'forever': False,
+                    'type': 0,
+                    'banner': item['banner'],
+                    'color': '#2196f3'
+                }
                 if '任务' in item['title']:
                     event['forever'] = True
+                    event['color'] = '#f764ad'
+                    event['banner'] = item['banner']
                 if item['type'] == 1:
                     event['type'] = 1
                 if '扭蛋' in item['tag_label']:
                     event['type'] = 2
-                if '倍' in item['title']:
+                    event['color'] = '#ffc107'
+                    event['banner'] = item['banner']
+                if '双倍' in item['title']:
                     event['type'] = 3
+                    event['banner'] = item['banner']
+                    event['color'] = '#580dda'
                 event_data['cn'].append(event)
         # 深渊提醒
         i = 0
@@ -153,22 +166,26 @@ async def load_event_cn():
             curmon = datetime.today() + relativedelta(months=i)
             nextmon = curmon + relativedelta(months=1)
             event_data['cn'].append({
-                'title': '「深境螺旋」',
+                'title': '「深境螺旋」· 上半段',
                 'start': datetime.strptime(
                     curmon.strftime("%Y/%m/01 04:00"), r"%Y/%m/%d %H:%M"),
                 'end': datetime.strptime(
                     curmon.strftime("%Y/%m/16 03:59"), r"%Y/%m/%d %H:%M"),
                 'forever': False,
-                'type': 3
+                'type': 3,
+                'color': '#580dda',
+                'banner': res + '/sy.jpg'
             })
             event_data['cn'].append({
-                'title': '「深境螺旋」',
+                'title': '「深境螺旋」· 下半段 ',
                 'start': datetime.strptime(
                     curmon.strftime("%Y/%m/16 04:00"), r"%Y/%m/%d %H:%M"),
                 'end': datetime.strptime(
                     nextmon.strftime("%Y/%m/01 03:59"), r"%Y/%m/%d %H:%M"),
                 'forever': False,
-                'type': 3
+                'type': 3,
+                'color': '#580dda',
+                'banner': res + '/sy.jpg'
             })
             i = i+1
 
@@ -215,14 +232,12 @@ async def get_events(server, offset, days):
 
     for event in event_data[server]:
         if end > event['start'] and start < event['end']:  # 在指定时间段内 已开始 且 未结束
-            event['start_days'] = math.ceil(
-                (event['start'] - start) / timedelta(days=1))  # 还有几天开始
-            event['left_days'] = math.floor(
-                (event['end'] - start) / timedelta(days=1))  # 还有几天结束
+            event['start_days'] = math.ceil((event['start'] - start) / timedelta(days=1))  # 还有几天开始
+            event['left_days'] = math.floor((event['end'] - start) / timedelta(days=1))  # 还有几天结束
             events.append(event)
+
     # 按type从大到小 按剩余天数从小到大
-    events.sort(key=lambda item: item["type"]
-                * 100 - item['left_days'], reverse=True)
+    events.sort(key=lambda item: item["type"] * 100 - item['left_days'], reverse=True)
     return events
 
 

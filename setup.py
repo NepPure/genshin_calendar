@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="nonebot_plugin_genshin_calendar",
-    version="0.0.2",
+    version="0.0.3",
     keywords=["pip", "nonebot_plugin_genshin_calendar"],
     description="查看原神活动日历",
     long_description="查看原神活动日历",
@@ -17,7 +17,7 @@ setup(
     include_package_data=True,
     platforms="any",
     install_requires=[
-        "pydantic >= 1.9.0",
+        "Pillow >= 6.2.1",
         "nonebot2 >= 2.0.0b1",
         "nonebot-adapter-onebot >= 2.0.0b1",
     ],
