@@ -1,3 +1,0 @@
-Pillow>=6.2.1
-nonebot2>=2.0.0b1
-nonebot-adapter-onebot>=2.0.0b1
