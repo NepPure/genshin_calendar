@@ -1,5 +1,5 @@
-import os
 from datetime import datetime, timedelta
+from pathlib import Path
 from dateutil.relativedelta import relativedelta
 from .aiorequest import get
 import asyncio
@@ -8,7 +8,7 @@ import functools
 import re
 
 
-res = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'template')
+res = Path(__file__).parent / 'template'
 
 # type 0 普通常驻任务深渊 1 新闻 2 蛋池 3 限时活动H5
 event_data = {

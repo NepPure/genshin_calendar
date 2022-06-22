@@ -1,8 +1,8 @@
+import json
 import logging
-from pathlib import Path
 from typing import Union
 
-from nonebot import require, get_bot, on_command
+from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent, Bot, Message, MessageSegment, ActionFailed
 from nonebot.params import CommandArg
 
@@ -38,7 +38,6 @@ def save_data(data, data_file):
 async def send_calendar(group_id, group_data):
     for server in group_data['server_list']:
         im = await generate_day_schedule(server)
-        #base64_str = im2base64str(im)
         if 'cardimage' not in group_data or not group_data['cardimage']:
             msg = MessageSegment.image(im)
         else:
