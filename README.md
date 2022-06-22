@@ -32,4 +32,4 @@ v0.0.1<br>
 
 
 ### 功能演示
-![calendar](preview.gif)
+![calendar](preview.png)
