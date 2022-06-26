@@ -1,14 +1,14 @@
-from datetime import datetime, timedelta
-from pathlib import Path
-from dateutil.relativedelta import relativedelta
-from .aiorequest import get
+import os
 import asyncio
 import math
 import functools
 import re
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
+from .util import get
 
 
-res = Path(__file__).parent / 'template'
+res = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'template')
 
 # type 0 普通常驻任务深渊 1 新闻 2 蛋池 3 限时活动H5
 event_data = {
