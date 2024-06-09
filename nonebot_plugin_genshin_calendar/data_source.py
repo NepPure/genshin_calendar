@@ -7,8 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from dateutil.relativedelta import relativedelta
-from .utils import get
-
+from utils import get
 
 res = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'template')
 
@@ -94,7 +93,8 @@ async def query_data(url):
 async def load_event_cn():
     result = await query_data(url=list_api)
     detail_result = await query_data(url=detail_api)
-    if result and 'retcode' in result and result['retcode'] == 0 and detail_result and 'retcode' in detail_result and detail_result['retcode'] == 0:
+    if result and 'retcode' in result and result['retcode'] == 0 and detail_result and 'retcode' in detail_result and \
+            detail_result['retcode'] == 0:
         event_data['cn'] = []
         event_detail = {}
         for detail in detail_result['data']['list']:
@@ -132,7 +132,8 @@ async def load_event_cn():
                         datelist = searchObj.groups()  # ('2021', '9', '17')
                         if datelist and len(datelist) >= 6:
                             ctime = datetime.strptime(
-                                f'{datelist[0]}-{datelist[1]}-{datelist[2]} {datelist[3]}:{datelist[4]}:{datelist[5]}', r"%Y-%m-%d %H:%M:%S")
+                                f'{datelist[0]}-{datelist[1]}-{datelist[2]} {datelist[3]}:{datelist[4]}:{datelist[5]}',
+                                r"%Y-%m-%d %H:%M:%S")
                             if start_time < ctime < end_time:
                                 start_time = ctime
                     except Exception as e:
@@ -163,33 +164,33 @@ async def load_event_cn():
                     event['color'] = '#580dda'
                 event_data['cn'].append(event)
         # 深渊提醒
-        i = 0
-        while i < 2:
-            curmon = datetime.today() + relativedelta(months=i)
-            nextmon = curmon + relativedelta(months=1)
-            event_data['cn'].append({
-                'title': '「深境螺旋」· 上半段',
-                'start': datetime.strptime(
-                    curmon.strftime("%Y/%m/01 04:00"), r"%Y/%m/%d %H:%M"),
-                'end': datetime.strptime(
-                    curmon.strftime("%Y/%m/16 03:59"), r"%Y/%m/%d %H:%M"),
-                'forever': False,
-                'type': 3,
-                'color': '#580dda',
-                'banner': Path(__file__).parent /'template'/ 'sy.jpg'
-            })
-            event_data['cn'].append({
-                'title': '「深境螺旋」· 下半段 ',
-                'start': datetime.strptime(
-                    curmon.strftime("%Y/%m/16 04:00"), r"%Y/%m/%d %H:%M"),
-                'end': datetime.strptime(
-                    nextmon.strftime("%Y/%m/01 03:59"), r"%Y/%m/%d %H:%M"),
-                'forever': False,
-                'type': 3,
-                'color': '#580dda',
-                'banner': Path(__file__).parent /'template'/ 'sy.jpg'
-            })
-            i = i+1
+        # i = 0
+        # while i < 2:
+        #     curmon = datetime.today() + relativedelta(months=i)
+        #     nextmon = curmon + relativedelta(months=1)
+        #     event_data['cn'].append({
+        #         'title': '「深境螺旋」· 上半段',
+        #         'start': datetime.strptime(
+        #             curmon.strftime("%Y/%m/01 04:00"), r"%Y/%m/%d %H:%M"),
+        #         'end': datetime.strptime(
+        #             curmon.strftime("%Y/%m/16 03:59"), r"%Y/%m/%d %H:%M"),
+        #         'forever': False,
+        #         'type': 3,
+        #         'color': '#580dda',
+        #         'banner': Path(__file__).parent / 'template' / 'sy.jpg'
+        #     })
+        #     event_data['cn'].append({
+        #         'title': '「深境螺旋」· 下半段 ',
+        #         'start': datetime.strptime(
+        #             curmon.strftime("%Y/%m/16 04:00"), r"%Y/%m/%d %H:%M"),
+        #         'end': datetime.strptime(
+        #             nextmon.strftime("%Y/%m/01 03:59"), r"%Y/%m/%d %H:%M"),
+        #         'forever': False,
+        #         'type': 3,
+        #         'color': '#580dda',
+        #         'banner': Path(__file__).parent / 'template' / 'sy.jpg'
+        #     })
+        #     i = i + 1
 
         return 0
     return 1
@@ -245,7 +246,8 @@ async def get_events(server, offset, days):
 
 if __name__ == '__main__':
     async def main():
-        await load_event_cn()
+        print(await get_events('cn', 0, 15))
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     loop.run_until_complete(main())

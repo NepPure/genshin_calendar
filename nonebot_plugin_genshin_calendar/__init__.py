@@ -1,5 +1,7 @@
 import logging
+import nonebot
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent, Message, MessageSegment, ActionFailed
 from nonebot.params import CommandArg
@@ -15,19 +17,32 @@ HELP_STR = '''
 原神日历 status : 查看本群日历推送设置
 '''.strip()
 
+driver = nonebot.get_driver()
+scheduler = AsyncIOScheduler()
 calendar = on_command('原神日历', aliases={"原神日历", '原神日程', 'ysrl', 'ysrc'}, priority=24, block=True)
-scheduler = require('nonebot_plugin_apscheduler').scheduler
+
+
+@driver.on_startup
+async def _():
+    scheduler.start()
+    for group_id, group_data in load_data('data.json').items():
+        scheduler.add_job(
+            func=send_calendar,
+            trigger='cron',
+            hour=group_data['hour'],
+            minute=group_data['minute'],
+            id="genshin_calendar_" + group_id,
+            args=(group_id, group_data),
+            misfire_grace_time=10
+        )
 
 
 async def send_calendar(group_id, group_data):
-    for server in group_data['server_list']:
-        im = await generate_day_schedule(server)
-        if 'cardimage' not in group_data or not group_data['cardimage']:
-            msg = MessageSegment.image(im)
-        else:
-            msg = f'[CQ:cardimage,file={im}]'
+    im = await generate_day_schedule('cn')
+    if 'cardimage' not in group_data or not group_data['cardimage']:
+        msg = MessageSegment.image(im)
 
-        await get_bot().send_group_msg(group_id=int(group_id), message=msg)
+    await get_bot().send_group_msg(group_id=int(group_id), message=msg)
 
 
 def update_group_schedule(group_id, group_data):
@@ -57,12 +72,8 @@ async def _(event: Union[GroupMessageEvent, MessageEvent], msg: Message = Comman
     server = 'cn'
     fun = msg.extract_plain_text().strip()
     action = re.search(r'(?P<action>on|off|time|status|cardimage)', fun)
-
-    if group_id not in config.enable_group:
-        await calendar.finish(f"尚未在群 {group_id} 开启本功能！", at_sender=True)
-
     if not fun:
-        im = await generate_day_schedule(server)
+        im = await generate_day_schedule(server, viewport={"width": 600, "height": 10})
 
         try:
             if group_id not in group_data or 'cardimage' not in group_data[group_id] or not group_data[group_id][
@@ -156,15 +167,3 @@ async def _(event: Union[GroupMessageEvent, MessageEvent], msg: Message = Comman
         else:
             await calendar.finish('指令错误', at_sender=True)
 
-
-# 自动推送任务
-for group_id, group_data in load_data('data.json').items():
-    scheduler.add_job(
-        func=send_calendar,
-        trigger='cron',
-        hour=group_data['hour'],
-        minute=group_data['minute'],
-        id="genshin_calendar_" + group_id,
-        args=(group_id, group_data),
-        misfire_grace_time=10
-    )
