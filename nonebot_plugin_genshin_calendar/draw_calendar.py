@@ -1,8 +1,6 @@
 import jinja2
 from nonebot import require
 from .browser import get_new_page
-
-require("nonebot_plugin_htmlrender")
 from .data_source import *
 from datetime import datetime, timedelta
 

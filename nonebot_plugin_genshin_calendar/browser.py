@@ -57,13 +57,11 @@ async def install_browser():
         main()
 
 
-@DRIVER.on_startup
 async def start_browser(**kwargs):
     await get_browser(**kwargs)
     logger.info('Playwright', '浏览器初始化成功')
 
 
-@DRIVER.on_shutdown
 async def shutdown_browser():
     if _browser:
         await _browser.close()

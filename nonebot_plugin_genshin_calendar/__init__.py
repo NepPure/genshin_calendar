@@ -38,10 +38,8 @@ async def _():
 
 
 async def send_calendar(group_id, group_data):
-    im = await generate_day_schedule('cn')
-    if 'cardimage' not in group_data or not group_data['cardimage']:
-        msg = MessageSegment.image(im)
-
+    im = await generate_day_schedule('cn', viewport={"width": 600, "height": 10})
+    msg = MessageSegment.image(im)
     await get_bot().send_group_msg(group_id=int(group_id), message=msg)
 
 
@@ -71,16 +69,12 @@ async def _(event: Union[GroupMessageEvent, MessageEvent], msg: Message = Comman
     group_data = load_data('data.json')
     server = 'cn'
     fun = msg.extract_plain_text().strip()
-    action = re.search(r'(?P<action>on|off|time|status|cardimage)', fun)
+    action = re.search(r'(?P<action>on|off|time|status)', fun)
     if not fun:
         im = await generate_day_schedule(server, viewport={"width": 600, "height": 10})
 
         try:
-            if group_id not in group_data or 'cardimage' not in group_data[group_id] or not group_data[group_id][
-                'cardimage']:
-                await calendar.finish(MessageSegment.image(im))
-            else:
-                await calendar.finish(f'[CQ:cardimage,file={im}]')
+            await calendar.finish(MessageSegment.image(im))
         except ActionFailed as e:
             logging.error(e)
 
@@ -93,8 +87,7 @@ async def _(event: Union[GroupMessageEvent, MessageEvent], msg: Message = Comman
                     str(server)
                 ],
                 'hour': 8,
-                'minute': 0,
-                'cardimage': False
+                'minute': 0
             }
             if event.message_type == 'guild':
                 await calendar.finish("暂不支持频道内推送~")
@@ -154,16 +147,4 @@ async def _(event: Union[GroupMessageEvent, MessageEvent], msg: Message = Comman
             )
             await calendar.finish(message)
 
-        # 切换cardImage模式
-        elif action.group('action') == "cardimage":
-            if 'cardimage' not in group_data[group_id] or not group_data[group_id]['cardimage']:
-                group_data[group_id]['cardimage'] = True
-                save_data(group_data, 'data.json')
-                await calendar.finish('已切换为cardimage模式', at_sender=True)
-            else:
-                group_data[group_id]['cardimage'] = False
-                save_data(group_data, 'data.json')
-                await calendar.finish('已切换为标准image模式', at_sender=True)
-        else:
-            await calendar.finish('指令错误', at_sender=True)
 
